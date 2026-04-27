@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ruleta de palabras en inglés</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f6fb;
+      margin: 0;
+      padding: 30px;
+      color: #1f2937;
+    }
+
+    .contenedor {
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .descripcion {
+      text-align: center;
+      color: #555;
+      margin-bottom: 25px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 160px;
+      padding: 15px;
+      font-size: 16px;
+      border: 2px solid #d1d5db;
+      border-radius: 12px;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+
+    .controles-voz {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .campo-control {
+      background: #f9fafb;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .campo-control label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    select, input[type="range"] {
+      width: 100%;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      box-sizing: border-box;
+    }
+
+    .botones {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    button {
+      border: none;
+      padding: 14px 22px;
+      font-size: 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.03);
+    }
+
+    .principal {
+      background: #2563eb;
+      color: white;
+    }
+
+    .secundario {
+      background: #10b981;
+      color: white;
+    }
+
+    .limpiar {
+      background: #ef4444;
+      color: white;
+    }
+
+    .resultado {
+      margin-top: 35px;
+      text-align: center;
+      padding: 30px;
+      border-radius: 16px;
+      background: #eef4ff;
+      border: 2px dashed #93c5fd;
+    }
+
+    .palabra {
+      font-size: 58px;
+      font-weight: bold;
+      color: #1d4ed8;
+      min-height: 75px;
+    }
+
+    .mensaje {
+      margin-top: 10px;
+      color: #555;
+    }
+
+    .historial {
+      margin-top: 30px;
+      background: #f9fafb;
+      padding: 18px;
+      border-radius: 12px;
+    }
+
+    .historial h3 {
+      margin-top: 0;
+    }
+
+    .lista-historial {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .etiqueta {
+      background: #e0e7ff;
+      color: #1e3a8a;
+      padding: 6px 10px;
+      border-radius: 20px;
+      font-size: 14px;
+    }
+
+    .opciones {
+      margin-top: 18px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      color: #374151;
+    }
+
+    input[type="checkbox"] {
+      transform: scale(1.2);
+      margin-right: 6px;
+    }
+
+    @media (max-width: 700px) {
+      .controles-voz {
+        grid-template-columns: 1fr;
+      }
+
+      .palabra {
+        font-size: 42px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="contenedor">
+    <h1>Ruleta de palabras en inglés</h1>
+    <p class="descripcion">Escribe una lista de palabras o verbos en inglés, uno por línea. Luego presiona el botón para lanzar una palabra aleatoria y escucharla.</p>
+
+    <textarea id="listaPalabras" placeholder="Ejemplo:\ngo\neat\nrun\nstudy\nplay"></textarea>
+
+    <div class="opciones">
+      <label>
+        <input type="checkbox" id="evitarRepetidas" checked>
+        Evitar repetir palabras hasta terminar la lista
+      </label>
+      <label>
+        <input type="checkbox" id="vozAutomatica" checked>
+        Decir la palabra automáticamente
+      </label>
+    </div>
+
+    <div class="controles-voz">
+      <div class="campo-control">
+        <label for="selectorVoz">Modelo de voz disponible</label>
+        <select id="selectorVoz">
+          <option value="">Cargando voces...</option>
+        </select>
+      </div>
+
+      <div class="campo-control">
+        <label for="velocidadVoz">Velocidad de voz: <span id="valorVelocidad">0.85</span></label>
+        <input type="range" id="velocidadVoz" min="0.5" max="1.5" step="0.05" value="0.85">
+      </div>
+
+      <div class="campo-control">
+        <label for="tonoVoz">Tono de voz: <span id="valorTono">1</span></label>
+        <input type="range" id="tonoVoz" min="0.5" max="1.5" step="0.05" value="1">
+      </div>
+
+      <div class="campo-control">
+        <label for="idiomaVoz">Idioma preferido</label>
+        <select id="idiomaVoz" onchange="cargarVoces()">
+          <option value="en-US">Inglés americano</option>
+          <option value="en-GB">Inglés británico</option>
+          <option value="en-AU">Inglés australiano</option>
+          <option value="all">Todas las voces</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="botones">
+      <button class="principal" onclick="lanzarPalabra()">Lanzar palabra</button>
+      <button class="secundario" onclick="decirPalabra()">Repetir voz</button>
+      <button class="limpiar" onclick="reiniciarJuego()">Reiniciar</button>
+    </div>
+
+    <div class="resultado">
+      <div class="palabra" id="palabraMostrada">---</div>
+      <div class="mensaje" id="mensaje">Presiona “Lanzar palabra” para comenzar.</div>
+    </div>
+
+    <div class="historial">
+      <h3>Palabras que ya salieron</h3>
+      <div class="lista-historial" id="historial"></div>
+    </div>
+  </div>
+
+  <script>
+    let palabrasDisponibles = [];
+    let palabrasUsadas = [];
+    let palabraActual = "";
+    let vocesDisponibles = [];
+
+    const velocidad = document.getElementById("velocidadVoz");
+    const tono = document.getElementById("tonoVoz");
+    const valorVelocidad = document.getElementById("valorVelocidad");
+    const valorTono = document.getElementById("valorTono");
+
+    velocidad.addEventListener("input", () => {
+      valorVelocidad.textContent = velocidad.value;
+    });
+
+    tono.addEventListener("input", () => {
+      valorTono.textContent = tono.value;
+    });
+
+    function cargarVoces() {
+      const selector = document.getElementById("selectorVoz");
+      const idiomaPreferido = document.getElementById("idiomaVoz").value;
+
+      vocesDisponibles = speechSynthesis.getVoices();
+
+      let vocesFiltradas = vocesDisponibles;
+
+      if (idiomaPreferido !== "all") {
+        vocesFiltradas = vocesDisponibles.filter(voz => voz.lang === idiomaPreferido || voz.lang.startsWith(idiomaPreferido.split("-")[0]));
+      }
+
+      selector.innerHTML = "";
+
+      if (vocesFiltradas.length === 0) {
+        const opcion = document.createElement("option");
+        opcion.value = "";
+        opcion.textContent = "No hay voces disponibles para este idioma";
+        selector.appendChild(opcion);
+        return;
+      }
+
+      vocesFiltradas.forEach((voz) => {
+        const indiceReal = vocesDisponibles.indexOf(voz);
+        const opcion = document.createElement("option");
+        opcion.value = indiceReal;
+        opcion.textContent = `${voz.name} (${voz.lang})`;
+        selector.appendChild(opcion);
+      });
+    }
+
+    speechSynthesis.onvoiceschanged = cargarVoces;
+    window.addEventListener("load", () => {
+      cargarVoces();
+      setTimeout(cargarVoces, 500);
+    });
+
+    function obtenerLista() {
+      const texto = document.getElementById("listaPalabras").value;
+      return texto
+        .split("\n")
+        .map(palabra => palabra.trim())
+        .filter(palabra => palabra.length > 0);
+    }
+
+    function lanzarPalabra() {
+      const listaOriginal = obtenerLista();
+      const evitarRepetidas = document.getElementById("evitarRepetidas").checked;
+      const vozAutomatica = document.getElementById("vozAutomatica").checked;
+
+      if (listaOriginal.length === 0) {
+        document.getElementById("mensaje").textContent = "Primero escribe una lista de palabras.";
+        return;
+      }
+
+      if (!evitarRepetidas) {
+        palabrasDisponibles = listaOriginal;
+      } else {
+        if (palabrasDisponibles.length === 0) {
+          palabrasDisponibles = listaOriginal.filter(p => !palabrasUsadas.includes(p));
+        }
+
+        if (palabrasDisponibles.length === 0) {
+          document.getElementById("mensaje").textContent = "Ya salieron todas las palabras. Presiona Reiniciar para empezar otra vez.";
+          return;
+        }
+      }
+
+      const indice = Math.floor(Math.random() * palabrasDisponibles.length);
+      palabraActual = palabrasDisponibles[indice];
+
+      document.getElementById("palabraMostrada").textContent = palabraActual;
+      document.getElementById("mensaje").textContent = "Palabra seleccionada.";
+
+      if (evitarRepetidas) {
+        palabrasUsadas.push(palabraActual);
+        palabrasDisponibles.splice(indice, 1);
+        actualizarHistorial();
+      }
+
+      if (vozAutomatica) {
+        decirPalabra();
+      }
+    }
+
+    function decirPalabra() {
+      if (!palabraActual) {
+        document.getElementById("mensaje").textContent = "Primero lanza una palabra.";
+        return;
+      }
+
+      speechSynthesis.cancel();
+
+      const selector = document.getElementById("selectorVoz");
+      const vozSeleccionada = vocesDisponibles[selector.value];
+
+      const lectura = new SpeechSynthesisUtterance(palabraActual);
+      lectura.lang = "en-US";
+      lectura.rate = parseFloat(document.getElementById("velocidadVoz").value);
+      lectura.pitch = parseFloat(document.getElementById("tonoVoz").value);
+
+      if (vozSeleccionada) {
+        lectura.voice = vozSeleccionada;
+        lectura.lang = vozSeleccionada.lang;
+      }
+
+      speechSynthesis.speak(lectura);
+    }
+
+    function actualizarHistorial() {
+      const historial = document.getElementById("historial");
+      historial.innerHTML = "";
+
+      palabrasUsadas.forEach(palabra => {
+        const etiqueta = document.createElement("span");
+        etiqueta.className = "etiqueta";
+        etiqueta.textContent = palabra;
+        historial.appendChild(etiqueta);
+      });
+    }
+
+    function reiniciarJuego() {
+      palabrasDisponibles = [];
+      palabrasUsadas = [];
+      palabraActual = "";
+      document.getElementById("palabraMostrada").textContent = "---";
+      document.getElementById("mensaje").textContent = "Juego reiniciado. Presiona “Lanzar palabra” para comenzar.";
+      document.getElementById("historial").innerHTML = "";
+      speechSynthesis.cancel();
+    }
+  </script>
+</body>
+</html>
